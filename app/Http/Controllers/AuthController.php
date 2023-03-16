@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use OpenApi\Annotations as OA;
 
 /**
  * @OA\Info(
@@ -17,7 +16,6 @@ use OpenApi\Annotations as OA;
  *     description="API para confirmação de habilidades."
  * )
  */
-
 class AuthController extends Controller
 {
     /**
@@ -63,19 +61,20 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Verificação de email
-        $user = User::where('email', $request->email)->first();
+        // Verificação do request
+        $credentials = $request->only('email', 'password');
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $token = $user->createToken('API Token')->plainTextToken;
+
+            return response()->json([
+                'token' => $token,
+                'user' => $user
+            ]);
         }
 
-        $token = $user->createToken('API Token')->accessToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return response()->json(['error' => 'Unauthorized'], 401);
     }
 
     /**
