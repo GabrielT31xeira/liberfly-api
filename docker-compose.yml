@@ -1,0 +1,53 @@
+version: '3'
+services:
+    # Criação do banco de dados
+    db_liberfly:
+        image: mysql:latest
+        restart: always
+        container_name: dbliberfly
+        ports:
+            - "3311:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: liberfly_db
+            MYSQL_USER: liberfly
+            MYSQL_PASSWORD: liberfly
+        networks:
+            - liberfly_net
+
+    # Criação do servidor web
+    nginx:
+        image: nginx:latest
+        container_name: nginxliberfly
+        ports:
+            - "8083:80"
+        volumes:
+            - ./:/var/www/html
+            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        networks:
+            - liberfly_net
+
+    # Criação do container Laravel
+    app:
+        volumes:
+            - ./:/var/www/html
+        build:
+            context: .
+            dockerfile: Dockerfile-php
+        container_name: appliberfly
+        environment:
+            - "DB_HOST=dbliberfly"
+            - "DB_PORT=3306"
+            - "DB_DATABASE=liberfly_db"
+            - "DB_USERNAME=liberfly"
+            - "DB_PASSWORD=liberfly"
+        networks:
+            - liberfly_net
+
+volumes:
+    db_data:
+
+networks:
+    liberfly_net:
