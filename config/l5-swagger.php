@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'auth' => [
+        'enabled' => true,
+        'in' => 'header',
+        'name' => 'Authorization',
+        'type' => 'apiKey'
+    ],
     'default' => 'default',
     'documentations' => [
         'default' => [
@@ -39,7 +45,7 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                 */
                 'annotations' => [
-                    base_path('app/Http/Controllers'),
+                    base_path('app'),
                 ],
 
             ],
