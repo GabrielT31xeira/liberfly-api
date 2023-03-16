@@ -33,12 +33,11 @@ class AuthController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response="200",
+     *        response="200",
      *         description="Login realizado com sucesso",
      *         @OA\JsonContent(
      *             @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOi..."),
      *             @OA\Property(property="token_type", type="string", example="Bearer"),
-     *             @OA\Property(property="expires_at", type="string", format="date-time", example="2023-03-17 08:00:00")
      *         )
      *     ),
      *     @OA\Response(
@@ -64,33 +63,18 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // Pegando o que veio do request
-        $credentials = request(['email', 'password']);
+        // Verificação de email
+        $user = User::where('email', $request->email)->first();
 
-        // Verificando o que veio do request
-        if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 401);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $user = $request->user();
-        // Criando TokenAcess
-        $tokenResult = $user->createToken('Personal Access Token');
+        $token = $user->createToken('API Token')->accessToken;
 
-        // Expirando token 1 semana apos o cadastro
-        if ($request->remember_me) {
-            $tokenResult->token->expires_at = Carbon::now()->addWeeks(1);
-            $tokenResult->token->save();
-        }
-
-        // Resposta de sucesso
         return response()->json([
-            'access_token' => $tokenResult->accessToken,
+            'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_at' => Carbon::parse(
-                $tokenResult->token->expires_at
-            )->toDateTimeString()
         ]);
     }
 
