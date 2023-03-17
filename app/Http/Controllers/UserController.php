@@ -5,12 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\SecurityScheme(
+ *   securityScheme="bearerAuth",
+ *   type="http",
+ *   scheme="bearer",
+ *   bearerFormat="JWT"
+ * )
+ */
 class UserController extends Controller
 {
     /**
      * @OA\Get(
      *     path="/api/user/index",
      *     summary="Lista todos os usuários",
+     *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Lista de usuários",
